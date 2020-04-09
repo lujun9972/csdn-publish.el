@@ -1,6 +1,7 @@
 (require 'org)
 (require 'ox-gfm)
 (require 'vc)
+(require 'request)
 
 (defcustom csdn-publish-cookie nil
   "Cookie used to login in CSDN."
@@ -156,7 +157,7 @@ will return \"this is title\" if OPTION is \"TITLE\""
          (read-type (or read-type "public"))
          (title (csdn-publish--read-org-option "TITLE"))
          (tags (or (csdn-publish--read-org-option "TAGS") ""))
-         (category (car (split-string tags ",")))
+         (category (car (split-string tags " ")))
          (data `(("title" . ,title)
                  ("markdowncontent" . ,md-content)
                  ("content" . ,html-content)
@@ -169,26 +170,28 @@ will return \"this is title\" if OPTION is \"TITLE\""
                  ("authorized_status" . nil)
                  ("not_auto_saved" . "1")
                  ("source" . "pc_mdeditor")))
-         (url-request-method "POST")
-         (url-request-noninteractive t)
-         (url-request-extra-headers '(("Content-Type" . "application/json")
+         (url-request-extra-headers `(("Accept-Charset" . "zh-CN,en-US;q=0.7,en;q=0.3")
+                                      ("Content-Type" . "application/json")
                                       ("Referer" . "https://editor.csdn.net/md")
                                       ("Cookie" . ,(csdn-publish-get-cookie))
-                                      ("Cache-Control" . "no-cache")
-                                      ("Accept-Language" . "zh-CN,en-US;q=0.7,en;q=0.3")))
-         (url-request-data (encode-coding-string (json-encode data) 'utf-8))
-         (response-buffer (url-retrieve-synchronously "https://blog-console-api.csdn.net/v1/mdeditor/saveArticle" nil t))
-         (response (with-current-buffer response-buffer
-                     (goto-char (+ 1  url-http-end-of-headers))
-                     (json-read)))
-         (code (alist-get 'code response))
-         (msg (alist-get 'msg response))
-         (data (alist-get 'data response))
-         (id (alist-get 'id data)))
-    (kill-buffer response-buffer)
-    (if (not (= 200 code))
-        (warn msg)
-      (csdn-publish-update-org-csdn-mapping title id))))
+                                      ("Cache-Control" . "no-cache"))))
+    (request "https://blog-console-api.csdn.net/v1/mdeditor/saveArticle"
+      :type "POST"
+      :data (json-encode data)
+      :headers url-request-extra-headers
+      :parser #'json-read
+      :sync t
+      :success (cl-function
+                (lambda (&key response &allow-other-keys)
+                  (let ((data (alist-get 'data response))
+                        (id (alist-get 'id data))))
+                  (csdn-publish-update-org-csdn-mapping title id)))
+      :error (cl-function
+              (lambda (&key response &allow-other-keys)
+                (message "get a failed responese[%s]" response)
+                (let ((code (alist-get 'code response))
+                      (msg (alist-get 'msg response)))
+                  (warn code msg)))))))
 
 ;;;###autoload
 (defun csdn-publish-articles (&optional files read-type)
