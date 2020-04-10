@@ -3,14 +3,24 @@
 (require 'vc)
 (require 'request)
 
-(defcustom csdn-publish-cookie nil
-  "Cookie used to login in CSDN."
+(defcustom csdn-publish-user-name (getenv "CSDN_PUBLISH_USER_NAME")
+  "value of UserName in Cookie which used to login in CSDN"
+  :group 'csdn-publish
+  :type 'string)
+
+(defcustom csdn-publish-user-info (getenv "CSDN_PUBLISH_USER_INFO")
+  "value of UserInfo in Cookie which used to login in CSDN"
+  :group 'csdn-publish
+  :type 'string)
+
+(defcustom csdn-publish-user-token (getenv "CSDN_PUBLISH_USER_TOKEN")
+  "value of UserToken in Cookie which used to login in CSDN"
   :group 'csdn-publish
   :type 'string)
 
 (defun csdn-publish-get-cookie ()
   "Get the cookie used to login in CSDN."
-  (or csdn-publish-cookie (getenv "CSDN_PUBLISH_COOKIE")))
+  (format "UserName=%s; UserInfo=%s; UserToken=%s" csdn-publish-user-name csdn-publish-user-info csdn-publish-user-token))
 
 (defcustom csdn-publish-original-link-getter (if (featurep 'ego)
                                                  #'csdn-publish-get-ego-link
