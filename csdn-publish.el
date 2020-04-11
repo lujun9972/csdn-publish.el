@@ -1,7 +1,9 @@
+(require 'subr-x)
 (require 'org)
 (require 'ox-gfm)
 (require 'vc)
 (require 'request)
+(require 'browse-url)
 
 (defcustom csdn-publish-user-name (getenv "CSDN_PUBLISH_USER_NAME")
   "value of UserName in Cookie which used to login in CSDN"
@@ -17,6 +19,15 @@
   "value of UserToken in Cookie which used to login in CSDN"
   :group 'csdn-publish
   :type 'string)
+
+(defcustom csdn-publish-open-url 'confirm
+  "Whether open article URL after publish.
+
+nil means don't open.
+'confirm means ask user.
+t means open the URL."
+  :group 'csdn-publish
+  )
 
 (defun csdn-publish-get-cookie ()
   "Get the cookie used to login in CSDN."
@@ -195,7 +206,13 @@ will return \"this is title\" if OPTION is \"TITLE\""
                 (lambda (&key data &allow-other-keys)
                   (message "data is %s" data)
                   (let* ((data (alist-get 'data data))
-                         (id (alist-get 'id data)))
+                         (id (alist-get 'id data))
+                         (url (alist-get 'url data))
+                         (open-url-p (if (eq csdn-publish-open-url 'confirm)
+                                         (yes-or-no-p (format "Open blog url(%s)?" url))
+                                       csdn-publish-open-url)))
+                    (when open-url-p
+                      (browse-url url))
                     (csdn-publish-update-org-csdn-mapping title id))))
       :error (cl-function
               (lambda (&key data &allow-other-keys)
