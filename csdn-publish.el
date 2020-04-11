@@ -192,15 +192,16 @@ will return \"this is title\" if OPTION is \"TITLE\""
       :parser #'json-read
       :sync t
       :success (cl-function
-                (lambda (&key response &allow-other-keys)
-                  (let ((data (alist-get 'data response))
-                        (id (alist-get 'id data))))
-                  (csdn-publish-update-org-csdn-mapping title id)))
+                (lambda (&key data &allow-other-keys)
+                  (message "data is %s" data)
+                  (let* ((data (alist-get 'data data))
+                         (id (alist-get 'id data)))
+                    (csdn-publish-update-org-csdn-mapping title id))))
       :error (cl-function
-              (lambda (&key response &allow-other-keys)
-                (message "get a failed responese[%s]" response)
-                (let ((code (alist-get 'code response))
-                      (msg (alist-get 'msg response)))
+              (lambda (&key data &allow-other-keys)
+                (message "get a failed responese[%s]" data)
+                (let ((code (alist-get 'code data))
+                      (msg (alist-get 'msg data)))
                   (warn code msg)))))))
 
 ;;;###autoload
@@ -211,10 +212,10 @@ will return \"this is title\" if OPTION is \"TITLE\""
     (when (stringp files)
       (setq files (list files)))
     (dolist (file files)
-             (save-excursion
-               (find-file file)
-               (csdn-publish)
-               (sit-for 10)
-               (kill-buffer)))))
+      (save-excursion
+        (find-file file)
+        (csdn-publish)
+        (sit-for 10)
+        (kill-buffer)))))
 
 (provide 'csdn-publish)
