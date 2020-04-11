@@ -13,7 +13,7 @@
 
 以Firefox为例：
 
-1. 在Firefox上访问 https://blog.csdn.net/
+1. 在Firefox上访问 https://blog.csdn.net/ 并登录
 2. 按 =F12= 打开 Web Developer 面板
 3. 选择 =Storage= 标签
 4. 在左侧面板选择 =Cookies= -> =https://blog.csdn.net=
