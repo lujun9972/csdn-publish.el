@@ -1,18 +1,41 @@
+(require 'subr-x)
 (require 'org)
 (require 'ox-gfm)
 (require 'vc)
 (require 'request)
+(require 'browse-url)
 
 (defcustom csdn-publish-interval 61
   "Seconds wait between two publish.")
 (defcustom csdn-publish-cookie nil
   "Cookie used to login in CSDN."
+(defcustom csdn-publish-user-name (getenv "CSDN_PUBLISH_USER_NAME")
+  "value of UserName in Cookie which used to login in CSDN"
   :group 'csdn-publish
   :type 'string)
 
+(defcustom csdn-publish-user-info (getenv "CSDN_PUBLISH_USER_INFO")
+  "value of UserInfo in Cookie which used to login in CSDN"
+  :group 'csdn-publish
+  :type 'string)
+
+(defcustom csdn-publish-user-token (getenv "CSDN_PUBLISH_USER_TOKEN")
+  "value of UserToken in Cookie which used to login in CSDN"
+  :group 'csdn-publish
+  :type 'string)
+
+(defcustom csdn-publish-open-url 'confirm
+  "Whether open article URL after publish.
+
+nil means don't open.
+'confirm means ask user.
+t means open the URL."
+  :group 'csdn-publish
+  )
+
 (defun csdn-publish-get-cookie ()
-  "Get the cookie used to login CSDN."
-  (or csdn-publish-cookie (getenv "CSDN_PUBLISH_COOKIE")))
+  "Get the cookie used to login in CSDN."
+  (format "UserName=%s; UserInfo=%s; UserToken=%s" csdn-publish-user-name csdn-publish-user-info csdn-publish-user-token))
 
 (defcustom csdn-publish-original-link-getter (if (featurep 'ego)
                                                  #'csdn-publish-get-ego-link
@@ -185,15 +208,22 @@ will return \"this is title\" if OPTION is \"TITLE\""
       :parser #'json-read
       :sync t
       :success (cl-function
-                (lambda (&key response &allow-other-keys)
-                  (let ((data (alist-get 'data response))
-                        (id (alist-get 'id data))))
-                  (csdn-publish-update-org-csdn-mapping title id)))
+                (lambda (&key data &allow-other-keys)
+                  (message "data is %s" data)
+                  (let* ((data (alist-get 'data data))
+                         (id (alist-get 'id data))
+                         (url (alist-get 'url data))
+                         (open-url-p (if (eq csdn-publish-open-url 'confirm)
+                                         (yes-or-no-p (format "Open blog url(%s)?" url))
+                                       csdn-publish-open-url)))
+                    (when open-url-p
+                      (browse-url url))
+                    (csdn-publish-update-org-csdn-mapping title id))))
       :error (cl-function
-              (lambda (&key response &allow-other-keys)
-                (message "get a failed responese[%s]" response)
-                (let ((code (alist-get 'code response))
-                      (msg (alist-get 'msg response)))
+              (lambda (&key data &allow-other-keys)
+                (message "get a failed responese[%s]" data)
+                (let ((code (alist-get 'code data))
+                      (msg (alist-get 'msg data)))
                   (warn code msg)))))))
 
 ;;;###autoload

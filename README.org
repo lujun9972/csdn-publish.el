@@ -1,0 +1,27 @@
+#+TITLE: README
+#+AUTHOR: lujun9972
+#+TAGS: csdn-publish.el
+#+DATE: [2020-04-10 五 21:56]
+#+LANGUAGE:  zh-CN
+#+STARTUP:  inlineimages
+#+OPTIONS:  H:6 num:nil toc:t \n:nil ::t |:t ^:nil -:nil f:t *:t <:nil
+
+* 配置
+在使用csdn-publish发布CSDN博文前，需要先设置好Cookie中的 =UserName=, =UserInfo= 和 =UserToken= 的值。
+
+每个浏览器查看 Cookie 值的方法都不一样，具体可以百度。
+
+以Firefox为例：
+
+1. 在Firefox上访问 https://blog.csdn.net/ 并登录
+2. 按 =F12= 打开 Web Developer 面板
+3. 选择 =Storage= 标签
+4. 在左侧面板选择 =Cookies= -> =https://blog.csdn.net=
+   [[file:./images/screenshot-01.png]]
+5. 在过滤栏中依次输入 =UserName=, =UserInfo= 和 =UserToken= 就能查看相应的值了
+
+依次设置 =csdn-publish-user-name=, =csdn-publish-user-info= 和 =csdn-publish-user-token= 变量
+
+* 发布文章
+1. 打开要发布的org文件
+2. 执行 =M-x csdn-publish=
