@@ -3,13 +3,15 @@
 (require 'vc)
 (require 'request)
 
+(defcustom csdn-publish-interval 61
+  "Seconds wait between two publish.")
 (defcustom csdn-publish-cookie nil
   "Cookie used to login in CSDN."
   :group 'csdn-publish
   :type 'string)
 
 (defun csdn-publish-get-cookie ()
-  "Get the cookie used to login in CSDN."
+  "Get the cookie used to login CSDN."
   (or csdn-publish-cookie (getenv "CSDN_PUBLISH_COOKIE")))
 
 (defcustom csdn-publish-original-link-getter (if (featurep 'ego)
@@ -150,6 +152,7 @@ will return \"this is title\" if OPTION is \"TITLE\""
 (defun csdn-publish (&optional read-type)
   "Publish current article"
   (interactive)
+  (message "DEBUG:current buffer is [%s],now is [%s]" (buffer-name) (current-time-string))
   (let* ((md-content (org-export-as 'gfm nil nil t))
          (original_link (funcall csdn-publish-original-link-getter (buffer-file-name)))
          (origin-article-statement (format "<p>原文地址:<a href='%s'>%s</a></p>" original_link original_link))
@@ -204,7 +207,7 @@ will return \"this is title\" if OPTION is \"TITLE\""
              (save-excursion
                (find-file file)
                (csdn-publish)
-               (sit-for 10)
+               (sit-for csdn-publish-interval)
                (kill-buffer)))))
 
 (provide 'csdn-publish)
