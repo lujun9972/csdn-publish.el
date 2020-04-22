@@ -6,9 +6,10 @@
 (require 'browse-url)
 
 (defcustom csdn-publish-interval 61
-  "Seconds wait between two publish.")
-(defcustom csdn-publish-cookie nil
-  "Cookie used to login in CSDN."
+  "Seconds wait between two publish."
+  :group 'csdn-publish
+  :type 'integer)
+
 (defcustom csdn-publish-user-name (getenv "CSDN_PUBLISH_USER_NAME")
   "value of UserName in Cookie which used to login in CSDN"
   :group 'csdn-publish
